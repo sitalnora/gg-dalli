@@ -61,7 +61,11 @@ module Dalli
     # Get the value associated with the key.
     # If a value is not found, then +nil+ is returned.
     def get(key, req_options = nil)
-      perform(:get, key, req_options)
+      t0 = Time.now if key.include?('marketing-website-index') 
+      res = perform(:get, key, req_options)
+      t1 = Time.now if key.include?('marketing-website-index')
+      Dalli.logger.warn("MEMCACHED-RT for #{key} is #{t1-t0} seconds") if key.include?('marketing-website-index')
+      res
     end
 
     ##
