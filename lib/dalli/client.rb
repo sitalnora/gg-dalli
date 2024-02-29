@@ -419,19 +419,28 @@ module Dalli
     # operational times out.
     ##
     def perform(*all_args)
-      return yield if block_given?
+      start_time = Time.now
+      retries = 0
+      res = nil
+      begin
+        return yield if block_given?
 
-      op, key, *args = all_args
+        op, key, *args = all_args
 
-      key = key.to_s
-      key = @key_manager.validate_key(key)
+        key = key.to_s
+        key = @key_manager.validate_key(key)
 
-      server = ring.server_for_key(key)
-      server.request(op, key, *args)
-    rescue NetworkError => e
-      Dalli.logger.debug { e.inspect }
-      Dalli.logger.debug { 'retrying request with new server' }
-      retry
+        server = ring.server_for_key(key)
+        res = server.request(op, key, *args)
+      rescue NetworkError => e
+        retries += 1
+        Dalli.logger.debug { e.inspect }
+        Dalli.logger.debug { 'retrying request with new server' }
+        retry
+      end
+      end_time = Time.now
+      Dalli.logger.warn("MEMCACHED-SERVER-RT for #{all_args[1]} is #{end_time-start_time} after retrying #{retries} times. ") if (all_args[1].include?('marketing-website-index') rescue nil || all_args[1].include?('marketing-website-seo-tags') rescue nil)
+      res
     end
 
     def normalize_options(opts)
