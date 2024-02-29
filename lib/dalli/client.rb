@@ -439,7 +439,7 @@ module Dalli
         retry
       end
       end_time = Time.now
-      Dalli.logger.warn("MEMCACHED-SERVER-RT for #{all_args[1]} is #{end_time-start_time} after retrying #{retries} times. ") if (all_args[1].include?('marketing-website-index') rescue nil || all_args[1].include?('marketing-website-seo-tags') rescue nil)
+      Dalli.logger.warn("MEMCACHED-SERVER-RT for #{all_args[1]} is #{end_time-start_time} after retrying #{retries} times. ") if (all_args[1].include?('marketing-website-index') || all_args[1].include?('marketing-website-seo-tags')) rescue nil
       res
     end
 
